@@ -20,9 +20,7 @@ public class CompanyService {
     public Company verifyDomainOfEmail(String email) {
         String domain = email.substring(email.indexOf("@") + 1);
 
-        Company company = companyRepository.findByDomain(domain).orElseThrow(
+        return companyRepository.findByDomain(domain).orElseThrow(
                 ()-> new CustomException(ErrorType.UNREGISTERED_DOMAIN));
-
-        return company;
     }
 }

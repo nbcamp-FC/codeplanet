@@ -2,12 +2,13 @@ package com.sparta.codeplanet.product.entity;
 
 import com.sparta.codeplanet.global.enums.Status;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Comment extends TimeStamp {
 
     @Id

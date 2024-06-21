@@ -6,12 +6,14 @@ import com.sparta.codeplanet.global.enums.UserRole;
 import com.sparta.codeplanet.global.exception.CustomException;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.mapping.ToOne;
+
+import java.util.List;
 
 @Entity
 @Getter
-@Setter
 @Table(name="User")
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class User extends TimeStamp {
 
@@ -19,6 +21,10 @@ public class User extends TimeStamp {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, unique = true)
     private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "companyId", nullable = false)
+    private Company company;
 
     @Column(nullable = false, unique = true)
     private String username;
@@ -43,12 +49,14 @@ public class User extends TimeStamp {
     @Enumerated(EnumType.STRING)
     private Status status;
 
+    @OneToMany(mappedBy = "fromUser", fetch = FetchType.LAZY)
+    private List<Follow> followingList;
+
+    @OneToMany(mappedBy = "toUser", fetch = FetchType.LAZY)
+    private List<Follow> followerList;
+
     @Column
     private Boolean refresh;
-
-    @ManyToOne
-    @JoinColumn(name = "companyId", nullable = false)
-    private Company company;
 
     @Builder
     public User(String username,String nickname, String hashedPassword, String email,Company company, String intro, Status status) {
@@ -78,9 +86,9 @@ public class User extends TimeStamp {
     }
 
     /**
-     * 회원 상태 확인
+     * 회원 상태 검증 (이메일 인증)
      */
-    public void verifyStatus() {
+    public void verifyStatusWhenEmailAuth() {
         // 이미 승인된 회원
         if (Status.ACTIVE.equals(this.status)) {
             throw new CustomException(ErrorType.APPROVED_USER);
@@ -92,10 +100,30 @@ public class User extends TimeStamp {
     }
 
     /**
-     * 회원 상태 변경
-     * @param status
+     * 회원 상태 검증 (팔로우)
      */
-    public void updateStatus(Status status) {
-        this.status = status;
+    public void verifyStatusWhenFollow() {
+        // 승인되지 않은 회원
+        if (Status.BEFORE_APPROVE.equals(this.status)) {
+            throw new CustomException(ErrorType.UNAPPROVED_USER);
+        }
+        // 탈퇴한 회원
+        if (Status.DEACTIVATE.equals(this.status)) {
+            throw new CustomException(ErrorType.DEACTIVATED_USER);
+        }
+    }
+
+    /**
+     * 회원 상태 변경 (ACTIVE)
+     */
+    public void active() {
+        this.status = Status.ACTIVE;
+    }
+
+    /**
+     * 회원 상태 변경 (DEACTIVATE)
+     */
+    public void deactivate() {
+        this.status = Status.DEACTIVATE;
     }
 }

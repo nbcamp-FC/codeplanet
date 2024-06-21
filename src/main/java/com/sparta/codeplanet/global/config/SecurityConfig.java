@@ -73,7 +73,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
-            JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
+        JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         /**
          *  폼을통한 로그인 방식 사용안함
          */
@@ -86,6 +86,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(requests ->
                         requests.requestMatchers("/users", "/users/login", "/email", "/email/**").permitAll()	// requestMatchers의 인자로 전달된 url은 모두에게 허용
                                 .requestMatchers(HttpMethod.GET, "/feed/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/users/{userId}/follower").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/users/{userId}/following").permitAll()
                                 .anyRequest().authenticated()	// 그 외의 모든 요청은 인증 필요
                 )
                 .sessionManagement(sessionManagement ->

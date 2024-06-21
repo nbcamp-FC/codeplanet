@@ -2,14 +2,13 @@ package com.sparta.codeplanet.product.entity;
 
 import com.sparta.codeplanet.global.enums.Status;
 import jakarta.persistence.*;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Company extends TimeStamp {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

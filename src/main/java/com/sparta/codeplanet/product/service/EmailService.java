@@ -1,7 +1,6 @@
 package com.sparta.codeplanet.product.service;
 
 import com.sparta.codeplanet.global.enums.ErrorType;
-import com.sparta.codeplanet.global.enums.Status;
 import com.sparta.codeplanet.global.exception.CustomException;
 import com.sparta.codeplanet.product.controller.EmailRequestDto;
 import com.sparta.codeplanet.product.dto.EmailResponseDto;
@@ -27,7 +26,6 @@ public class EmailService {
     private final UserService userService;
     private final CompanyService companyService;
     private final JavaMailSender emailSender;
-    private String authCode;
 
     /**
      * 메일 발송
@@ -40,22 +38,22 @@ public class EmailService {
 
         User user = getVaildUser(requestDto.getEmail());
 
+        // 인증 코드
+        String authCode = createCode();
+
         // 메일 양식
-        MimeMessage emailForm = createEmailForm(requestDto.getEmail());
+        MimeMessage emailForm = createEmailForm(requestDto.getEmail(), authCode);
 
         // 실제 메일 발송
         emailSender.send(emailForm);
 
-        Email email = emailRepository.findByEmail(requestDto.getEmail()).orElse(null);
+        Email email = emailRepository.findByEmail(requestDto.getEmail())
+                .orElse(Email.builder()
+                        .email(requestDto.getEmail())
+                        .authCode(authCode)
+                        .build());
 
-        if (email == null) {
-            email = Email.builder()
-                    .email(requestDto.getEmail())
-                    .authCode(authCode)
-                    .build();
-        } else {
-            email.updateAuthCode(authCode);
-        }
+        email.updateAuthCode(authCode);
 
         emailRepository.save(email);
 
@@ -66,6 +64,7 @@ public class EmailService {
      * 인증 코드 검증
      * @param requestDto 이메일, 인증 코드
      */
+    @Transactional
     public void verifyAuthCode(EmailVerifyRequestDto requestDto) {
 
         User user = getVaildUser(requestDto.getEmail());
@@ -78,36 +77,35 @@ public class EmailService {
         emailRepository.delete(email);
 
         // 회원 상태 변경
-        user.updateStatus(Status.ACTIVE);
+        user.active();
     }
 
     /**
      * 메일 양식 생성
      * @param email 수신 이메일
+     * @param authCode 인증 코드
      * @return 메일 양식
      * @throws MessagingException 메일 발송 오류 시
      */
-    private MimeMessage createEmailForm(String email) throws MessagingException {
-        authCode = createCode();
+    private MimeMessage createEmailForm(String email, String authCode) throws MessagingException {
 
         MimeMessage message = emailSender.createMimeMessage();
         message.addRecipients(MimeMessage.RecipientType.TO, email);
         message.setSubject("인증 코드");
 
         // 메일 내용
-        String msgOfEmail="";
-        msgOfEmail += "<div style='margin:20px;text-align:center;width: 495px;margin: 0 auto;'>";
-        msgOfEmail += "<h1> 안녕하세요 CODEPLANET 입니다. </h1>";
-        msgOfEmail += "<br>";
-        msgOfEmail += "<p>아래 코드를 입력해주세요<p>";
-        msgOfEmail += "<br>";
-        msgOfEmail += "<p>감사합니다.<p>";
-        msgOfEmail += "<br>";
-        msgOfEmail += "<div align='center' style='border:1px solid black;font-family:verdana;border-radius: 30px;'>";
-        msgOfEmail += "<div style='font-size:130%; margin-top: 20px;'>";
-        msgOfEmail += "CODE : <strong>";
-        msgOfEmail += authCode + "</strong><div><br/> ";
-        msgOfEmail += "</div>";
+        String msgOfEmail = "<div style='margin:20px;text-align:center;width: 495px;margin: 0 auto;'>" +
+                "<h1> 안녕하세요 CODEPLANET 입니다. </h1>" +
+                "<br>" +
+                "<p>아래 코드를 입력해주세요<p>" +
+                "<br>" +
+                "<p>감사합니다.<p>" +
+                "<br>" +
+                "<div align='center' style='border:1px solid black;font-family:verdana;border-radius: 30px;'>" +
+                "<div style='font-size:130%; margin-top: 20px;'>" +
+                "CODE : <strong>" +
+                authCode + "</strong><div><br/> " +
+                "</div>";
 
         message.setText(msgOfEmail, "utf-8", "html");
 
@@ -151,7 +149,7 @@ public class EmailService {
 
         User user = userService.getUserByEmail(email);
         // 회원 상태 확인
-        user.verifyStatus();
+        user.verifyStatusWhenEmailAuth();
 
         return user;
     }

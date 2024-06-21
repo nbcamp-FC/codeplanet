@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -31,7 +32,7 @@ public class Email  {
     private LocalDateTime expireDate;
 
     @Builder
-    public Email(Long id, String email, String authCode) {
+    public Email(Long id, @NonNull String email, @NonNull String authCode) {
         this.id = id;
         this.email = email;
         this.authCode = authCode;

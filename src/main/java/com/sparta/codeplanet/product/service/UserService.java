@@ -4,15 +4,15 @@ import com.sparta.codeplanet.global.enums.ErrorType;
 import com.sparta.codeplanet.global.enums.Status;
 import com.sparta.codeplanet.global.exception.CustomException;
 import com.sparta.codeplanet.product.dto.SignupRequestDto;
-import com.sparta.codeplanet.product.entity.Company;
 import com.sparta.codeplanet.product.entity.User;
 import com.sparta.codeplanet.product.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -62,5 +62,15 @@ public class UserService {
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email).orElseThrow(
                 () -> new CustomException(ErrorType.NOT_FOUND_USER));
+    }
+
+    /**
+     * ID로 회원 찾기
+     * @param userId 회원 ID
+     * @return 회원
+     */
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId).orElseThrow(
+                ()-> new CustomException(ErrorType.NOT_FOUND_USER));
     }
 }
