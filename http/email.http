@@ -6,6 +6,7 @@ Content-Type: application/json
   "email": "wjdqlsdu388@gmail.com"
 }
 
+
 ### 인증 코드 확인
 POST http://localhost:8080/email/verify
 Content-Type: application/json

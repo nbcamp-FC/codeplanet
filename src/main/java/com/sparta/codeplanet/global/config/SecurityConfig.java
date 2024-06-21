@@ -84,7 +84,7 @@ public class SecurityConfig {
 
         http
                 .authorizeHttpRequests(requests ->
-                        requests.requestMatchers("/users", "/users/login", "/email/**").permitAll()	// requestMatchers의 인자로 전달된 url은 모두에게 허용
+                        requests.requestMatchers("/users", "/users/login", "/email", "/email/**").permitAll()	// requestMatchers의 인자로 전달된 url은 모두에게 허용
                                 .requestMatchers(HttpMethod.GET, "/feed/**").permitAll()
                                 .anyRequest().authenticated()	// 그 외의 모든 요청은 인증 필요
                 )

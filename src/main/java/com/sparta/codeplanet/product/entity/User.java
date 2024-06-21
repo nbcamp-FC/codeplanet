@@ -20,10 +20,6 @@ public class User extends TimeStamp {
     @Column(nullable = false, unique = true)
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "companyId", nullable = false)
-    private Company company;
-
     @Column(nullable = false, unique = true)
     private String username;
 
@@ -49,6 +45,10 @@ public class User extends TimeStamp {
 
     @Column
     private Boolean refresh;
+
+    @ManyToOne
+    @JoinColumn(name = "companyId", nullable = false)
+    private Company company;
 
     @Builder
     public User(String username,String nickname, String hashedPassword, String email,Company company, String intro, Status status) {
@@ -98,5 +98,4 @@ public class User extends TimeStamp {
     public void updateStatus(Status status) {
         this.status = status;
     }
-
 }
