@@ -10,8 +10,8 @@ spring:
     hibernate:
       ddl-auto: update
   datasource:
-    password: 1234
-    username: root
+    password: ${DB_PASSWORD}
+    username: ${DB_USERNAME}
     url: jdbc:mysql://localhost:3306/codeplanet
   mail:
     host: smtp.gmail.com
@@ -28,4 +28,4 @@ spring:
 
 jwt:
   secret:
-    key: 091c763cbe3ccc027ec7251075f26e5cb99185bd0f01483c337b534011d6caf49882005d866b35168a1605cce27a8a38b1737b4c4668def003716bdfb11d9b89;
+    key: ${JWT_KEY};

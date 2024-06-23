@@ -2,7 +2,7 @@ package com.sparta.codeplanet.product.service;
 
 import com.sparta.codeplanet.global.enums.ErrorType;
 import com.sparta.codeplanet.global.exception.CustomException;
-import com.sparta.codeplanet.product.controller.EmailRequestDto;
+import com.sparta.codeplanet.product.dto.EmailRequestDto;
 import com.sparta.codeplanet.product.dto.EmailResponseDto;
 import com.sparta.codeplanet.product.dto.EmailVerifyRequestDto;
 import com.sparta.codeplanet.product.entity.Company;

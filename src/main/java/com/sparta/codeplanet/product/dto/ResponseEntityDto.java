@@ -16,4 +16,9 @@ public class ResponseEntityDto<T> {
         this.message = message.getMessage();
         this.data = data;
     }
+
+    public ResponseEntityDto(ResponseMessage message) {
+        this.status = HttpStatus.OK.toString();
+        this.message = message.getMessage();
+    }
 }

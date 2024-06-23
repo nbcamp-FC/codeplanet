@@ -1,10 +1,11 @@
 package com.sparta.codeplanet.product.entity;
 
 import com.sparta.codeplanet.global.enums.Status;
-import com.sparta.codeplanet.product.entity.likes.FeedLikes;
+import com.sparta.codeplanet.product.dto.ReplyRequestDto;
+import com.sparta.codeplanet.product.entity.likes.ReplyLikes;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -13,7 +14,7 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Feed extends TimeStamp {
+public class Reply extends TimeStamp {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,35 +25,23 @@ public class Feed extends TimeStamp {
     @JoinColumn(name = "userId", nullable = false)
     private User user;
 
-    @Column(nullable = false)
-    private String title;
+    @ManyToOne
+    @JoinColumn(name = "feedId", nullable = false)
+    private Feed feed;
 
     @Column(nullable = false)
+    @NotBlank(message = "빈 댓글은 달 수 없습니다.")
     private String content;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Status status = Status.ACTIVE;
 
-    @OneToMany(mappedBy = "feed", fetch = FetchType.LAZY)
-    private List<FeedLikes> likesList;
+    @OneToMany(mappedBy = "reply")
+    private List<ReplyLikes> likesList;
 
     @Column
     private Integer likesCount = 0;
-
-    @Builder
-    public Feed(User user, String title, String content, Status status) {
-        this.user = user;
-        this.title = title;
-        this.content = content;
-        this.status = status != null ? status : Status.ACTIVE;
-
-    }
-
-    public void update(String title, String content) {
-        this.title = title;
-        this.content = content;
-    }
 
     public int increaseLikesCount() {
         return ++likesCount;
@@ -60,5 +49,15 @@ public class Feed extends TimeStamp {
 
     public int decreaseLikesCount() {
         return --likesCount;
+    }
+
+    public Reply(ReplyRequestDto replyRequestDto, Feed feed, User user) {
+        this.content = replyRequestDto.getContent();
+        this.feed = feed;
+        this.user = user;
+    }
+
+    public void update(ReplyRequestDto requestDto) {
+        this.content = requestDto.getContent();
     }
 }

@@ -8,11 +8,15 @@ import com.sparta.codeplanet.product.dto.FeedResponseDto;
 import com.sparta.codeplanet.product.dto.GroupFeedResponseDto;
 import com.sparta.codeplanet.product.dto.ResponseEntityDto;
 import com.sparta.codeplanet.product.entity.Feed;
+import com.sparta.codeplanet.product.entity.Follow;
 import com.sparta.codeplanet.product.entity.User;
 import com.sparta.codeplanet.product.repository.FeedRepository;
 import com.sparta.codeplanet.product.repository.UserRepository;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,16 +25,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class FeedService {
 
     private final FeedRepository feedRepository;
     private final UserRepository userRepository;
-
-
-    public FeedService(FeedRepository feedRepository, UserRepository userRepository) {
-        this.feedRepository = feedRepository;
-        this.userRepository = userRepository;
-    }
+    private final UserService userService;
 
     /**
      * 게시물 작성
@@ -122,5 +123,32 @@ public class FeedService {
             .stream()
             .map(GroupFeedResponseDto::new)
             .collect(Collectors.toList());
+    }
+
+    /**
+     * 로그인한 회원의 팔로잉 회원 게시글 목록 조회
+     * @param user 로그인한 회원
+     * @param page 페이지
+     * @param size 크기
+     * @return 게시글 목록
+     */
+    public List<FeedResponseDto> getFollowingFeed(User user, int page, int size) {
+        User fromUser = userService.getUserById(user.getId());
+
+        List<Long> followList = fromUser.getFollowingList().stream()
+                .map(f->f.getToUser().getId())
+                .toList();
+
+        if (followList.isEmpty()){
+            throw new CustomException(ErrorType.NOT_FOUND_FEED);
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        return feedRepository.findAllByUserIdIn(followList, pageable)
+                .getContent()
+                .stream()
+                .map(FeedResponseDto::new)
+                .toList();
     }
 }

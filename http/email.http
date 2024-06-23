@@ -3,7 +3,7 @@ POST http://localhost:8080/email
 Content-Type: application/json
 
 {
-  "email": "wjdqlsdu388@gmail.com"
+  "email": "{{email}}"
 }
 
 
@@ -12,6 +12,6 @@ POST http://localhost:8080/email/verify
 Content-Type: application/json
 
 {
-  "email": "wjdqlsdu388@gmail.com",
+  "email": "{{email}}",
   "authCode": "qzhKdxPQ"
 }

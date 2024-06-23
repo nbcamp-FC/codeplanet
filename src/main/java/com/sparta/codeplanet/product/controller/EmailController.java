@@ -1,6 +1,7 @@
 package com.sparta.codeplanet.product.controller;
 
 import com.sparta.codeplanet.global.enums.ResponseMessage;
+import com.sparta.codeplanet.product.dto.EmailRequestDto;
 import com.sparta.codeplanet.product.dto.EmailResponseDto;
 import com.sparta.codeplanet.product.dto.EmailVerifyRequestDto;
 import com.sparta.codeplanet.product.dto.ResponseEntityDto;
@@ -32,7 +33,7 @@ public class EmailController {
         EmailResponseDto responseDto = emailService.sendEmail(requestDto);
 
         ResponseEntityDto<EmailResponseDto> responseEntity =
-                new ResponseEntityDto<>(ResponseMessage.SEND_EMAIL, responseDto);
+                new ResponseEntityDto<>(ResponseMessage.SEND_EMAIL_SUCCESS, responseDto);
         return ResponseEntity.ok(responseEntity);
     }
 
@@ -44,6 +45,6 @@ public class EmailController {
     @PostMapping("/verify")
     public ResponseEntity<?> verifyAuthCode(@RequestBody @Valid EmailVerifyRequestDto requestDto) {
         emailService.verifyAuthCode(requestDto);
-        return ResponseEntity.ok(ResponseMessage.VERIFY_AUTH_CODE.getMessage());
+        return ResponseEntity.ok(ResponseMessage.VERIFY_AUTH_CODE_SUCCESS.getMessage());
     }
 }

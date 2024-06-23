@@ -1,4 +1,4 @@
-package com.sparta.codeplanet.product.controller;
+package com.sparta.codeplanet.product.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

@@ -104,6 +104,12 @@ public class FeedController {
         return ResponseEntity.ok(responseDto);
     }
 
-    
-
+    @GetMapping("/following")
+    public ResponseEntity<?> getFollowingFeed(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        List<FeedResponseDto> responseDtoList = feedService.getFollowingFeed(userDetails.getUser(), page, size);
+        return ResponseEntity.ok(responseDtoList);
+    }
 }

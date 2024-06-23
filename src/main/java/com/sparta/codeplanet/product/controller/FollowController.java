@@ -4,7 +4,6 @@ import com.sparta.codeplanet.global.enums.ResponseMessage;
 import com.sparta.codeplanet.global.security.UserDetailsImpl;
 import com.sparta.codeplanet.product.dto.FollowResponseDto;
 import com.sparta.codeplanet.product.dto.ResponseEntityDto;
-import com.sparta.codeplanet.product.entity.User;
 import com.sparta.codeplanet.product.service.FollowService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +33,7 @@ public class FollowController {
 
         String followUsername = followService.createFollow(userDetails.getUser(), userId);
 
-        return ResponseEntity.ok(followUsername + ResponseMessage.FOLLOW.getMessage());
+        return ResponseEntity.ok(followUsername + ResponseMessage.FOLLOW_SUCCESS.getMessage());
     }
 
     /**
@@ -82,6 +81,6 @@ public class FollowController {
 
         String unFollowUsername = followService.deleteFollow(userDetails.getUser(), userId);
 
-        return ResponseEntity.ok(unFollowUsername + ResponseMessage.UNFOLLOW.getMessage());
+        return ResponseEntity.ok(unFollowUsername + ResponseMessage.UNFOLLOW_SUCCESS.getMessage());
     }
 }

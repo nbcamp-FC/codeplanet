@@ -3,7 +3,6 @@
 @content = 내용테스트
 @update_title = 제목수정테스트
 @update_content = 내용수정테스트
-@accessToken = Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhYmNkZWYxMjM0NSIsImF1dGgiOiJVU0VSIiwiaWF0IjoxNzE4OTcxOTkyLCJleHAiOjgxOTg5NzE5OTJ9.69G8Sl2OTxhSMPVMFZSIi1FyMWoki5wg9T7ivHhd5Z4
 
 
 ### 게시물 작성
@@ -40,4 +39,8 @@ Content-Type: application/json
 GET http://localhost:8080/feed?page=0&size=5
 accessToken: {{accessToken}}
 Content-Type: application/json
+
+### 팔로잉 회원 게시물 조회
+GET http://localhost:8080/feed/following
+accessToken: {{accessToken}}
 
