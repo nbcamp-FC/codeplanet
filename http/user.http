@@ -38,6 +38,24 @@ Content-Type: application/json
   client.global.set("refreshToken", response.headers.valueOf("refreshToken"));
 %}
 
+### 토큰 재발급 테스트
+POST http://localhost:8080/api/auth/reissue
+refresh-token:{{Refresh-Token}}
+
+> {%
+  client.global.set("accessToken", response.headers.valueOf("accessToken"));
+  client.global.set("refreshToken", response.headers.valueOf("refreshToken"));
+%}
+
+
+### 로그아웃
+POST http://localhost:8080/users/logout
+Content-Type: application/json
+
+{
+  "username":"{{username}}",
+  "password":"{{password}}"
+}
 
 ### 이메일 인증 코드 전송
 POST http://localhost:8080/email
@@ -53,5 +71,5 @@ Content-Type: application/json
 
 {
   "email": "{{email}}",
-  "authCode": "iJofmKC1"
+  "authCode": "emHArGU7"
 }

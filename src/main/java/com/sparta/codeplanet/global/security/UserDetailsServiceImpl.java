@@ -2,7 +2,9 @@ package com.sparta.codeplanet.global.security;
 
 import com.sparta.codeplanet.product.entity.User;
 import com.sparta.codeplanet.product.repository.UserRepository;
+import java.util.Collections;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

@@ -20,9 +20,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
-import java.sql.Timestamp;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Date;
@@ -80,24 +78,24 @@ public class TokenProvider {
 
     public String createAccessToken(String username, UserRole role) {
         return BEARER_PREFIX + Jwts.builder()
-            .signWith(key, SIG)
-            .setSubject(username)
-            .claim(AUTHORIZATION_KEY, role)
-            .setIssuedAt(Timestamp.valueOf(LocalDateTime.now()))
-            .setExpiration(Date.from(Instant.now().plus(expirationHours, ChronoUnit.HOURS)))
-            .compact();
+                .signWith(key, SIG)
+                .setSubject(username)
+                .claim(AUTHORIZATION_KEY, role)
+                .setIssuedAt(new Date())
+                .setExpiration(Date.from(Instant.now().plus(expirationHours, ChronoUnit.HOURS)))
+                .compact();
     }
 
     public String createRefreshToken(String username, UserRole role) {
-        return BEARER_PREFIX+ Jwts.builder()
-            .signWith(key, SIG)
-            .setSubject(username)
-            .claim(AUTHORIZATION_KEY, role)
-            .setIssuedAt(Timestamp.valueOf(LocalDateTime.now()))
-            .setExpiration(
-                Date.from(Instant.now().plus(refreshExpirationHours, ChronoUnit.HOURS)))
-            .compact();
+        return BEARER_PREFIX + Jwts.builder()
+                .signWith(key, SIG)
+                .setSubject(username)
+                .claim(AUTHORIZATION_KEY, role)
+                .setIssuedAt(new Date())
+                .setExpiration(Date.from(Instant.now().plus(refreshExpirationHours, ChronoUnit.HOURS)))
+                .compact();
     }
+
 
     public String validateTokenAndGetSubject(String token) {
         return Jwts.parserBuilder()
@@ -116,20 +114,33 @@ public class TokenProvider {
      * @return
      * @throws JsonProcessingException
      */
-    @Transactional
     public String recreateAccessToken(String oldAccessToken) throws JsonProcessingException {
+        // Decode the subject from the old access token
         String subject = decodeJwtPayloadSubject(oldAccessToken);
-        Long userId = Long.parseLong(decodeJwtPayloadSubject(oldAccessToken));
-        Optional<User> user = userRepository.findById(userId);
-        userRefreshTokenRepository.findByIdAndReissueCountLessThan(
-                userId, reissueLimit)
-            .ifPresentOrElse(
-                UserRefreshToken::increaseReissueCount,
-                () -> {
-                    throw new ExpiredJwtException(null, null, "Refresh token expired.");
-                }
-            );
-        return createAccessToken(user.get().getUsername(), user.get().getUserRole());
+        Long userId = Long.parseLong(subject);
+
+        // Fetch the user by ID
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isEmpty()) {
+            throw new RuntimeException("User not found for the given ID: " + userId);
+        }
+        User user = userOptional.get();
+
+        // Validate and update the refresh token
+        Optional<UserRefreshToken> userRefreshTokenOptional = userRefreshTokenRepository.findByIdAndReissueCountLessThan(userId, reissueLimit);
+        if (userRefreshTokenOptional.isPresent()) {
+            UserRefreshToken userRefreshToken = userRefreshTokenOptional.get();
+            userRefreshToken.increaseReissueCount();
+            userRefreshTokenRepository.save(userRefreshToken);
+        } else {
+            throw new ExpiredJwtException(null, null, "Refresh token expired or reissue limit exceeded.");
+        }
+
+        // Log the reissued token
+        log.info("Access token reissued for user: {}", user.getUsername());
+
+        // Return the newly created access token
+        return createAccessToken(user.getUsername(), user.getUserRole());
     }
 
     public boolean validateToken(String token) {
@@ -161,12 +172,14 @@ public class TokenProvider {
      */
     @Transactional(readOnly = true)
     public void validateRefreshToken(String refreshToken, String oldAccessToken)
-        throws JsonProcessingException {
+            throws JsonProcessingException {
+        log.info("Validating refresh token: {}", refreshToken);
         getUserInfoFromToken(refreshToken);
         Long userId = Long.parseLong(decodeJwtPayloadSubject(oldAccessToken).split(":")[0]);
         userRefreshTokenRepository.findByIdAndReissueCountLessThan(userId, reissueLimit)
-            .filter(memberRefreshToken -> memberRefreshToken.validateRefreshToken(refreshToken))
-            .orElseThrow(() -> new ExpiredJwtException(null, null, "Refresh token expired."));
+                .filter(RefreshToken -> RefreshToken.validateRefreshToken(refreshToken))
+                .orElseThrow(() -> new ExpiredJwtException(null, null, "Refresh token expired."));
+        log.info("Refresh token validated for user ID: {}", userId);
     }
 
     // 사용자 엔티티에 있는 refresh 토큰 만료 여부를 확인합니다.
