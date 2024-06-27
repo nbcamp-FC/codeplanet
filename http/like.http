@@ -1,0 +1,19 @@
+## Variables
+@feedId = 1
+@replyId = 1
+
+### 피드 좋아요 추가
+POST http://localhost:8080/feed/{{feedId}}/likes
+accessToken: {{accessToken}}
+
+### 피드 좋아요 삭제
+DELETE http://localhost:8080/feed/{{feedId}}/likes
+accessToken: {{accessToken}}
+
+### 댓글 좋아요 추가
+POST http://localhost:8080/feed/{{feedId}}/reply/{{replyId}}/likes
+accessToken: {{accessToken}}
+
+### 댓글 좋아요 삭제
+DELETE http://localhost:8080/feed/{{feedId}}/reply/{{replyId}}/likes
+accessToken: {{accessToken}}

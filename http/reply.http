@@ -1,0 +1,31 @@
+## Variables
+@feedId = 1
+@replyId = 1
+@content = 내용테스트
+@content_update = 내용 update
+
+### 댓글 작성
+POST http://localhost:8080/feed/{{feedId}}/reply
+accessToken: {{accessToken}}
+Content-Type: application/json
+
+{
+  "content" : "{{content}}"
+}
+
+### 댓글 조회
+GET http://localhost:8080/feed/{{feedId}}/reply
+accessToken: {{accessToken}}
+
+### 댓글 수정
+PATCH http://localhost:8080/feed/{{feedId}}/reply/{{replyId}}
+accessToken: {{accessToken}}
+Content-Type: application/json
+
+{
+  "content" : "{{content_update}}"
+}
+
+### 댓글 삭제
+DELETE http://localhost:8080/feed/{{feedId}}/reply/{{replyId}}
+accessToken: {{accessToken}}
