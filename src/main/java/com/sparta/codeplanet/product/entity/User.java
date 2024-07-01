@@ -126,4 +126,21 @@ public class User extends TimeStamp {
     public void deactivate() {
         this.status = Status.DEACTIVATE;
     }
+
+    public void updateRole() {
+        if (this.userRole == UserRole.USER) {
+            this.userRole = UserRole.ADMIN;
+        }else {
+            this.userRole = UserRole.USER;
+        }
+    }
+
+    public void updatePassword(String hashedPassword) {
+        this.password = hashedPassword;
+    }
+
+    public void updateProfile(String nickname, String intro) {
+        this.nickname = nickname;
+        this.intro = intro;
+    }
 }

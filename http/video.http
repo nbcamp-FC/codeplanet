@@ -1,0 +1,179 @@
+## Variables
+@name = google
+@domain = gmail.com
+@userId = 1
+@title = 제목테스트
+@content = 내용테스트
+@update_title = 제목수정테스트
+@update_content = 내용수정테스트
+@feedId = 1
+@replyId = 1
+@content_update = 내용 update
+
+### 유저 회원 가입
+POST http://localhost:8080/users
+Content-Type: application/json
+
+{
+  "username":"{{username}}",
+  "nickname":"{{nickname}}",
+  "password":"{{password}}",
+  "email":"{{email}}",
+  "intro": "{{intro}}"
+}
+
+### 로그인
+POST http://localhost:8080/users/login
+Content-Type: application/json
+
+{
+  "username":"{{username}}",
+  "password":"{{password}}"
+}
+
+> {%
+  client.log(response.headers.valueOf("AccessToken"));
+  client.log(response.headers.valueOf("RefreshToken"));
+  client.global.set("AccessToken", response.headers.valueOf("AccessToken"));
+  client.global.set("RefreshToken", response.headers.valueOf("RefreshToken"));
+%}
+
+### 회원 프로필 수정
+PUT http://localhost:8080/users
+AccessToken: {{AccessToken}}
+Content-Type: application/json
+
+{
+  "intro":"update intro",
+  "nickname":"updateName",
+  "isTalTye": false
+}
+
+### 비밀번호 변경
+PATCH http://localhost:8080/users
+AccessToken: {{AccessToken}}
+Content-Type: application/json
+
+{
+  "currentPassword":"{{password}}",
+  "newPassword":"1qaz2wsx3edc!@#"
+}
+
+### 이메일 인증 코드 전송
+POST http://localhost:8080/email
+Content-Type: application/json
+
+{
+  "email": "{{email}}"
+}
+
+### 인증 코드 확인
+POST http://localhost:8080/email/verify
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "authCode": "gUSrh25q"
+}
+
+### 게시물 작성
+POST http://localhost:8080/feed
+AccessToken: {{AccessToken}}
+Content-Type: application/json
+
+{
+  "title" : "{{title}}",
+  "content" : "{{content}}"
+}
+> {%
+  client.log(response.headers.valueOf("AccessToken"));
+  client.log(response.headers.valueOf("RefreshToken"));
+%}
+
+### 게시물 조회
+GET http://localhost:8080/feed?page=0&size=5
+AccessToken: {{AccessToken}}
+Content-Type: application/json
+
+### 게시물 수정
+PUT http://localhost:8080/feed/2
+AccessToken: {{AccessToken}}
+Content-Type: application/json
+
+{
+
+  "title" : "{{update_title}}",
+  "content" : "{{update_content}}"
+}
+
+### 소속별 게시물 조회
+GET http://localhost:8080/feed/group?page=0&size=5
+AccessToken: {{AccessToken}}
+Content-Type: application/json
+
+### 댓글 작성
+POST http://localhost:8080/feed/{{feedId}}/reply
+AccessToken: {{AccessToken}}
+Content-Type: application/json
+
+{
+  "content" : "{{content}}"
+}
+
+### 댓글 조회
+GET http://localhost:8080/feed/{{feedId}}/reply
+AccessToken: {{AccessToken}}
+
+### 댓글 수정
+PATCH http://localhost:8080/feed/1/reply/2
+AccessToken: {{AccessToken}}
+Content-Type: application/json
+
+{
+  "content" : "{{content_update}}"
+}
+
+### 팔로우 추가
+POST http://localhost:8080/users/follow/{{userId}}
+AccessToken: {{AccessToken}}
+
+### 팔로우 취소
+DELETE http://localhost:8080/users/follow/{{userId}}
+AccessToken: {{AccessToken}}
+
+### 팔로잉 목록 조회
+GET http://localhost:8080/users/2/following
+AccessToken: {{AccessToken}}
+
+### 팔로워 목록 조회
+GET http://localhost:8080/users/{{userId}}/follower
+AccessToken: {{AccessToken}}
+
+### 팔로잉 회원 게시물 조회
+GET http://localhost:8080/feed/following
+AccessToken: {{AccessToken}}
+
+### 피드 좋아요 추가
+POST http://localhost:8080/feed/{{feedId}}/likes
+AccessToken: {{AccessToken}}
+
+### 피드 좋아요 삭제
+DELETE http://localhost:8080/feed/{{feedId}}/likes
+AccessToken: {{AccessToken}}
+
+### 댓글 좋아요 추가
+POST http://localhost:8080/feed/{{feedId}}/reply/{{replyId}}/likes
+AccessToken: {{AccessToken}}
+
+### 댓글 좋아요 삭제
+DELETE http://localhost:8080/feed/{{feedId}}/reply/{{replyId}}/likes
+AccessToken: {{AccessToken}}
+
+### 로그아웃
+POST http://localhost:8080/users/logout
+Content-Type: application/json
+
+{
+  "username":"{{username}}",
+  "password":"{{password}}"
+}

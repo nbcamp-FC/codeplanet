@@ -3,6 +3,7 @@ package com.sparta.codeplanet.product.entity;
 import com.sparta.codeplanet.global.enums.Status;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Company extends TimeStamp {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false, unique = true)
@@ -24,4 +26,12 @@ public class Company extends TimeStamp {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Status status;
+
+    @Builder
+    public Company(Long id, String name, String domain, Status status) {
+        this.id = id;
+        this.name = name;
+        this.domain = domain;
+        this.status = status;
+    }
 }

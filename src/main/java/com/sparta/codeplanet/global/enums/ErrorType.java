@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 @Getter
 @AllArgsConstructor
 public enum ErrorType {
-
     DUPLICATE_ACCOUNT_ID(HttpStatus.LOCKED, "이미 아이디가 존재합니다."),
     NOT_EXISTS_USER(HttpStatus.BAD_REQUEST, "존재하지 않는 회원입니다."),
     NOT_FOUND_AUTHENTICATION_INFO(HttpStatus.UNAUTHORIZED, "ID 혹은 PASSWORD가 잘못되었습니다."),
@@ -25,6 +24,9 @@ public enum ErrorType {
 
     // company
     UNREGISTERED_DOMAIN(HttpStatus.LOCKED, "등록되지 않은 도메인입니다."),
+
+    // user
+    ALREADY_TALYE_USER(HttpStatus.CONFLICT, "이미 탈퇴했어"),
 
     // feed
     NOT_FOUND_FEED(HttpStatus.LOCKED, "게시물을 찾을 수 없습니다."),
@@ -44,7 +46,10 @@ public enum ErrorType {
     // follow
     CANNOT_FOLLOW_MYSELF(HttpStatus.FORBIDDEN, "자기 자신을 팔로우 할 수 없습니다."),
     DUPLICATE_FOLLOW(HttpStatus.LOCKED, "이미 팔로우한 회원입니다."),
-    NOT_FOLLOWING(HttpStatus.LOCKED, "팔로우 한 상태가 아닙니다.");
+    NOT_FOLLOWING(HttpStatus.LOCKED, "팔로우 한 상태가 아닙니다."),
+
+    // admin
+    NOT_EXIST_ALL_USERS(HttpStatus.BAD_REQUEST, "회원이 존재하지 않습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

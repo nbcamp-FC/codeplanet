@@ -1,105 +1,108 @@
 package com.sparta.codeplanet.global.security.filter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import static com.sparta.codeplanet.product.dto.ApiResponse.success;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.codeplanet.global.enums.AuthEnum;
 import com.sparta.codeplanet.global.enums.ErrorType;
-import com.sparta.codeplanet.global.enums.UserRole;
-import com.sparta.codeplanet.global.exception.CustomException;
-import com.sparta.codeplanet.global.security.UserDetailsServiceImpl;
+import com.sparta.codeplanet.global.exception.ExceptionDto;
 import com.sparta.codeplanet.global.security.jwt.TokenProvider;
-import io.jsonwebtoken.Claims;
+import com.sparta.codeplanet.product.dto.ApiResponse;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.util.StringUtils;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Slf4j
 public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
     private final TokenProvider tokenProvider;
-    private final UserDetailsServiceImpl userDetailsService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public JwtAuthorizationFilter(TokenProvider tokenProvider,
-            UserDetailsServiceImpl userDetailsService) {
+    public JwtAuthorizationFilter(TokenProvider tokenProvider) {
         this.tokenProvider = tokenProvider;
-        this.userDetailsService = userDetailsService;
     }
 
-
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
-        String accessToken = tokenProvider.getAccessTokenFromHeader(request);
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+            FilterChain filterChain) throws ServletException, IOException {
 
-        if (StringUtils.hasText(accessToken)) {
+        try {
+            String accessToken = tokenProvider.getAccessTokenFromHeader(request);
             if (tokenProvider.validateToken(accessToken)) {
-                validToken(accessToken);
+                User user = parseUserSpecification(accessToken);
+                AbstractAuthenticationToken authentication = UsernamePasswordAuthenticationToken.authenticated(
+                        user, accessToken, user.getAuthorities());
+                authentication.setDetails(new WebAuthenticationDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             } else {
-                invalidToken(request, response);
+                throw new ExpiredJwtException(null, null, "Access token expired");
             }
+        } catch (ExpiredJwtException e) {
+            reissueAccessToken(request, response, e);
+            return; // Ensure the response is sent after reissuing the token
+        } catch (Exception e) {
+            request.setAttribute("exception", e);
         }
-
         filterChain.doFilter(request, response);
     }
 
-    private void validToken(String token) {
-        Claims info = tokenProvider.getUserInfoFromToken(token);
+    private User parseUserSpecification(String token) {
+        String[] split = Optional.ofNullable(token)
+                .filter(subject -> subject.length() >= 10)
+                .map(tokenProvider::validateTokenAndGetSubject)
+                .orElse("anonymous:anonymous")
+                .split(":");
 
+        return new User(split[0], "", List.of(new SimpleGrantedAuthority(split[1])));
+    }
+
+    private void reissueAccessToken(HttpServletRequest request, HttpServletResponse response,
+            Exception exception) throws IOException {
         try {
-            setAuthentication(info.getSubject());
-        } catch (Exception e) {
-            log.error("username = {}, message = {}", info.getSubject(), "인증 정보를 찾을 수 없습니다.");
-            throw new CustomException(ErrorType.NOT_FOUND_AUTHENTICATION_INFO);
-        }
-    }
-
-    private void invalidToken(HttpServletRequest request, HttpServletResponse response)
-            throws JsonProcessingException {
-        String refreshToken = tokenProvider.getRefreshTokenFromHeader(request);
-
-        if (StringUtils.hasText(refreshToken)) {
-            if (tokenProvider.validateToken(refreshToken) && tokenProvider.existRefreshToken(refreshToken)) {
-                Claims info = tokenProvider.getUserInfoFromToken(refreshToken);
-
-                UserRole role = UserRole.valueOf(info.get(AuthEnum.AUTHORIZATION_KEY).toString());
-
-                String newAccessToken = tokenProvider.createAccessToken(info.getSubject(), role);
-
-                tokenProvider.setHeaderAccessToken(response, newAccessToken);
-
-                try {
-                    setAuthentication(info.getSubject());
-                } catch (Exception e) {
-                    log.error("username = {}, message = {}", info.getSubject(), "인증 정보를 찾을 수 없습니다.");
-                    throw new CustomException(ErrorType.NOT_FOUND_AUTHENTICATION_INFO);
-                }
-            } else {
-                throw new CustomException(ErrorType.INVALID_REFRESH_TOKEN);
+            String refreshToken = tokenProvider.getRefreshTokenFromHeader(request);
+            if (refreshToken == null) {
+                throw exception;
             }
+            String oldAccessToken = tokenProvider.getAccessTokenFromHeader(request);
+            tokenProvider.validateRefreshToken(refreshToken, oldAccessToken);
+
+            String newAccessToken = tokenProvider.recreateAccessToken(oldAccessToken);
+            User user = parseUserSpecification(newAccessToken);
+            AbstractAuthenticationToken authenticated = UsernamePasswordAuthenticationToken.authenticated(
+                    user, newAccessToken, user.getAuthorities());
+            authenticated.setDetails(new WebAuthenticationDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authenticated);
+
+            response.setHeader(AuthEnum.ACCESS_TOKEN.getValue(), "Bearer " + newAccessToken);
+
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(objectMapper.writeValueAsString(
+                    ApiResponse.success("Access token reissued successfully")));
+            response.getWriter().flush();
+
+            log.info("Access token reissued: {}", newAccessToken);
+        } catch (Exception e) {
+            request.setAttribute("exception", e);
+            ErrorType errorType = ErrorType.INVALID_REFRESH_TOKEN;
+            response.setStatus(errorType.getHttpStatus().value());
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(objectMapper.writeValueAsString(new ExceptionDto(errorType)));
+            response.getWriter().flush();
         }
-    }
-
-    // 인증 처리
-    private void setAuthentication(String accountId) {
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        Authentication authentication = createAuthentication(accountId);
-        context.setAuthentication(authentication);
-
-        SecurityContextHolder.setContext(context);
-    }
-
-    // 인증 객체 생성
-    private Authentication createAuthentication(String accountId) {
-        UserDetails userDetails = userDetailsService.loadUserByUsername(accountId);
-        return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
 }

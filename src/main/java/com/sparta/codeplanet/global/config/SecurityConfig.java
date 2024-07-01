@@ -36,11 +36,9 @@ public class SecurityConfig {
      */
     private final TokenProvider tokenProvider;
     private final AuthenticationEntryPoint entryPoint;
-    private final UserDetailsServiceImpl userDetailsService;
     private final UserRepository userRepository;
     private final UserRefreshTokenRepository userRefreshTokenRepository;
     private final AuthenticationConfiguration authenticationConfiguration;
-    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     private final String[] WHITE_LIST = {"/users", "/user/login", "/feed/**"};
 
@@ -64,7 +62,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthorizationFilter jwtAuthorizationFilter() {
-        return new JwtAuthorizationFilter(tokenProvider, userDetailsService);
+        return new JwtAuthorizationFilter(tokenProvider);
     }
 
     @Bean
@@ -97,9 +95,8 @@ public class SecurityConfig {
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )   // 세션을 사용하지 않으므로 STATELESS 설정
                 .exceptionHandling(handler-> handler.authenticationEntryPoint(entryPoint))
-                .addFilterBefore(jwtAuthenticationFilter, BasicAuthenticationFilter.class)
-                .addFilterBefore(jwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtExceptionFilter(), JwtAuthorizationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter , UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(jwtAuthorizationFilter(), JwtAuthenticationFilter.class);;
 
 
         /**

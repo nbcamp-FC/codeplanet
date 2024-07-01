@@ -10,18 +10,6 @@ Content-Type: application/json
   "intro": "{{intro}}"
 }
 
-### 유저 회원 가입
-POST http://localhost:8080/users
-Content-Type: application/json
-
-{
-  "username":"asdfsafe4514",
-  "nickname":"jakeopoc",
-  "password":"nada5011!@@#AS",
-  "email":"muzidea0808@gmail.com",
-  "intro": "hahahahah"
-}
-
 ### 로그인
 POST http://localhost:8080/users/login
 Content-Type: application/json
@@ -38,24 +26,56 @@ Content-Type: application/json
   client.global.set("refreshToken", response.headers.valueOf("refreshToken"));
 %}
 
-### 토큰 재발급 테스트
-POST http://localhost:8080/api/auth/reissue
+### 회원 프로필 수정
+PUT http://localhost:8080/users
+accessToken: {{accessToken}}
+Content-Type: application/json
+
+{
+  "intro":"update intro",
+  "nickname":"updateName",
+  "isTalTye": false
+}
+
+### 비밀번호 변경
+PATCH http://localhost:8080/users
+accessToken: {{accessToken}}
+Content-Type: application/json
+
+{
+  "currentPassword":"{{password}}",
+  "newPassword":"1qaz2wsx3edc!@#"
+}
+
+### 회원 프로필 수정
+PUT http://localhost:8080/users
+accessToken: {{accessToken}}
+Content-Type: application/json
+
+{
+  "intro":"update intro",
+  "nickname":"updateName",
+  "isTalTye": false
+}
+
+### 비밀번호 변경
+PATCH http://localhost:8080/users
+accessToken: {{accessToken}}
+Content-Type: application/json
+
+{
+  "currentPassword":"{{password}}",
+  "newPassword":"1qaz2wsx3edc!@#"
+}
+
+### 리프레시 토큰 테스트
+POST http://localhost:8080/users/reissue
 refresh-token:{{Refresh-Token}}
 
 > {%
   client.global.set("accessToken", response.headers.valueOf("accessToken"));
   client.global.set("refreshToken", response.headers.valueOf("refreshToken"));
 %}
-
-
-### 로그아웃
-POST http://localhost:8080/users/logout
-Content-Type: application/json
-
-{
-  "username":"{{username}}",
-  "password":"{{password}}"
-}
 
 ### 이메일 인증 코드 전송
 POST http://localhost:8080/email
@@ -72,4 +92,14 @@ Content-Type: application/json
 {
   "email": "{{email}}",
   "authCode": "emHArGU7"
+}
+
+
+### 로그아웃
+POST http://localhost:8080/users/logout
+Content-Type: application/json
+
+{
+  "username":"{{username}}",
+  "password":"{{password}}"
 }

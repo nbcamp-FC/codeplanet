@@ -154,7 +154,6 @@ public class TokenProvider {
         } catch (ExpiredJwtException e) {
             // refresh token 활용해서 재발급
             log.info("Expired JWT Token", e);
-            throw e;
         } catch (UnsupportedJwtException e) {
             log.info("Unsupported JWT Token", e);
         } catch (IllegalArgumentException e) {
@@ -199,13 +198,19 @@ public class TokenProvider {
         ).get("sub").toString();
     }
 
-    // 헤더에서 access 토큰 가져오기
+
+    /**
+     * 헤더에서 access 토큰 가져옵니다.
+     * @param request
+     * @return Bearer 헤더가 뽑힌 토큰이 리턴됩니다.
+     */
     public String getAccessTokenFromHeader(HttpServletRequest request) {
         String accessToken = request.getHeader(AUTH_ACCESS_HEADER);
         if (StringUtils.hasText(accessToken) && accessToken.startsWith(BEARER_PREFIX)) {
-            return accessToken.substring(BEARER_PREFIX.length());
+            return accessToken.substring(BEARER_PREFIX.length()); // 헤더인 Bearer 을 잘라서 가져온다.
         }
-        return null;
+
+        return accessToken;
     }
 
     // 헤더에서 refresh 토큰 가져오기
@@ -214,7 +219,7 @@ public class TokenProvider {
         if (StringUtils.hasText(refreshToken) && refreshToken.startsWith(BEARER_PREFIX)) {
             return refreshToken.substring(BEARER_PREFIX.length());
         }
-        return null;
+        return refreshToken;
     }
 
     // 토큰에서 사용자 정보 가져오기
