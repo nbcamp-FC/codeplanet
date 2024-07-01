@@ -84,7 +84,7 @@ public class SecurityConfig {
 
         http
                 .authorizeHttpRequests(requests ->
-                        requests.requestMatchers("/users", "/users/login", "/email", "/email/**").permitAll()	// requestMatchers의 인자로 전달된 url은 모두에게 허용
+                        requests.requestMatchers("/users", "/email", "/email/**").permitAll()	// requestMatchers의 인자로 전달된 url은 모두에게 허용
                                 .requestMatchers(HttpMethod.GET, "/feed/**").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/users/{userId}/follower").permitAll() // 팔로워 조회
                                 .requestMatchers(HttpMethod.GET, "/users/{userId}/following").permitAll() // 팔로잉 조회
@@ -96,7 +96,7 @@ public class SecurityConfig {
                 )   // 세션을 사용하지 않으므로 STATELESS 설정
                 .exceptionHandling(handler-> handler.authenticationEntryPoint(entryPoint))
                 .addFilterBefore(jwtAuthenticationFilter , UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(jwtAuthorizationFilter(), JwtAuthenticationFilter.class);;
+                .addFilterAfter(jwtAuthorizationFilter(), JwtAuthenticationFilter.class);
 
 
         /**

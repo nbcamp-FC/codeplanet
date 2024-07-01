@@ -39,6 +39,14 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
 
+        String requestURI = request.getRequestURI();
+
+        // 회원가입 URL인 경우 토큰 검증을 건너뜀
+        if ("/users".equals(requestURI) && "POST".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         try {
             String accessToken = tokenProvider.getAccessTokenFromHeader(request);
             if (tokenProvider.validateToken(accessToken)) {
